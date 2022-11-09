@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e 
+
 #Usage 
 # sonic-onie-image-extract.sh <path/to/file/sonic-broadcom.bin>
 
@@ -18,3 +20,13 @@ echo
 
 F=`basename $1`
 sed -e '1,/^exit_marker$/d' $1 > $F.extracted.tar
+
+echo "Disclosed $0 binary image to tar $F.extracted.tar"
+
+mkdir -p "$F_extracted"
+tar -C "$F_extracted" -xf "$F.extracted.tar"
+
+echo "Extracted $0 binary image to dir $F.extracted/"
+
+
+
