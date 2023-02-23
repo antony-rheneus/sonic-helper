@@ -67,7 +67,7 @@ update_config()
 		fi	
                 hname=`jq '.DEVICE_METADATA.localhost.hostname' /etc/sonic/config_db.json`
                 sed -i 's/"hostname": "sonic"/"hostname": "labaz01-ed0202"/g' /tmp/m.json
-                jq '.DEVICE_METADATA.localhost.hostname = '"$hname"'' /etc/sonic/config_db.json > /tmp/mh.json
+                jq '.DEVICE_METADATA.localhost.hostname = '"$hname"'' /tmp/m.json > /tmp/mh.json
 		if [ $? -ne 0 ]; then
 			echo "ERROR, generating configs"
 			exit 5

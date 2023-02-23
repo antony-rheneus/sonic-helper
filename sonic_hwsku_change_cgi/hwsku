@@ -7,6 +7,15 @@ import cgi, cgitb
 
 from hwsku_migrate import *
 
+global var_dut_ip
+global var_dut_pass
+global var_dut_user
+global var_dut_sku
+global prev_form_page
+
+def fn_debug_log(arg):
+    f = open("", "a")
+
 def fn_debug_print(arg):
     print( "<i><b>TRACE</b>: ")
     print( arg)
@@ -42,7 +51,7 @@ def fn_print_footer():
     print( "</body>")
     print( '</html>')
 
-def fn_printfirst_form(var_dut_ip):
+def fn_printfirst_form(var_dut_ip, var_dut_user, var_dut_pass):
     var_dut_ip = "0.0.0.0" if var_dut_ip is None else var_dut_ip
 
     print( '<form name="info" action="hwsku" method="get" onsubmit="showloading(); return true;">')
@@ -74,49 +83,45 @@ def fn_print_http_params():
         print ("<b>%20s</b>: %s<\br>" % (param, os.environ[param]))
 
 def fn_get_query_string():
-    global var_dut_ip
-    global var_dut_pass
-    global var_dut_user
-    global var_dut_sku
-    global prev_form_page
-
     form = cgi.FieldStorage() 
+
     prev_form_page = form.getvalue('form')
     if not prev_form_page:
         prev_form_page = 0
+
+    var_dut_ip = form.getvalue('dut_ip')
+    var_dut_pass = form.getvalue('dut_pass')
+    var_dut_user = form.getvalue('dut_user')
+    if var_dut_ip == "0.0.0.0" or var_dut_ip is None:
+         print("<B>ERROR: IP is Invalid<B>")
+         print(var_dut_ip)
+
     if int(prev_form_page) == 3:
-        var_dut_ip = form.getvalue('dut_ip')
-        var_dut_pass = form.getvalue('dut_pass')
-        var_dut_user = form.getvalue('dut_user')
-        fn_printfourth_form()
+        fn_printfourth_form(var_dut_ip, var_dut_user, var_dut_pass)
     if int(prev_form_page) == 2:
-        var_dut_ip = form.getvalue('dut_ip')
-        var_dut_pass = form.getvalue('dut_pass')
-        var_dut_user = form.getvalue('dut_user')
         var_dut_sku = form.getvalue('sku')
-        fn_printthird_form()
+        fn_printthird_form(var_dut_ip, var_dut_user, var_dut_pass)
     elif int(prev_form_page) == 1:
-        var_dut_ip = form.getvalue('dut_ip')
-        var_dut_pass = form.getvalue('dut_pass')
-        var_dut_user = form.getvalue('dut_user')
-        fn_printsecond_form()
+        fn_printsecond_form(var_dut_ip, var_dut_user, var_dut_pass)
     else:
-        var_dut_ip = form.getvalue('dut_ip')
-        var_dut_pass = form.getvalue('dut_pass')
-        var_dut_user = form.getvalue('dut_user')
-        fn_printfirst_form(var_dut_ip)
+        fn_printfirst_form(var_dut_ip, var_dut_user, var_dut_pass)
 
 
-def fn_login_to_dut():
+
+
+def fn_test_dut():
     fn_debug_print(var_dut_ip)
     fn_debug_print(var_dut_user)
     fn_debug_print(var_dut_pass)
+    out = fn_get_skus(var_dut_ip, var_dut_user, var_dut_pass)
+    print out
 
-def fn_get_skus():
+def fn_get_skus(var_dut_ip, var_dut_user, var_dut_pass):
     global srvr_path
     global get_script
     global tmp_path
     global out
+
     srvr_path="/var/www/cgi-bin/sonic_helper/"
     get_script="remote_hwsku_info.sh"
     tmp_path="/tmp/_"
@@ -126,11 +131,12 @@ def fn_get_skus():
     fn_ssh_exec(var_dut_ip, var_dut_user, var_dut_pass, "rm -f "+tmp_path+get_script)
     return out
 
-def fn_change_sku():
+def fn_change_sku(var_dut_ip, var_dut_user, var_dut_pass):
     global srvr_path
     global get_script
     global tmp_path
     global out
+
     srvr_path="/var/www/cgi-bin/sonic_helper/"
     get_script="remote_hwsku_update.sh"
     tmp_path="/tmp/_"
@@ -146,7 +152,8 @@ def fn_change_sku():
     print( '<hr><br>')
     print( '<b>Rebooted the board </h2><br> Check status :')
 
-def fn_check_sku_status():
+def fn_check_sku_status(var_dut_ip, var_dut_user, var_dut_pass):
+
     srvr_path="/var/www/cgi-bin/sonic_helper/"
     print( '<hr><h3>SONiC Platform</h3><br>')
     print( '<p>')
@@ -157,8 +164,12 @@ def fn_check_sku_status():
     print( '<hr><br>')
 
 
-def fn_get_platform():
+def fn_get_platform(var_dut_ip, var_dut_user, var_dut_pass):
     global cur_sku
+
+    if var_dut_ip == "0.0.0.0":
+         print("<B>ERROR: IP is Invalid<B>")
+
     srvr_path="/var/www/cgi-bin/sonic_helper/"
     tmp_cmd="cat /etc/sonic/sonic-environment"
     out = []
@@ -179,6 +190,12 @@ def fn_get_platform():
 
 def fn_print_sonic_cmd(cmd):
     global cur_sku
+    global var_dut_ip
+    global var_dut_pass
+    global var_dut_user
+    global var_dut_sku
+    global prev_form_page
+
     srvr_path="/var/www/cgi-bin/sonic_helper/"
     out = []
     out = fn_ssh_exec(var_dut_ip, var_dut_user, var_dut_pass, cmd)
@@ -193,6 +210,12 @@ def fn_print_sonic_cmd(cmd):
     print( '<hr><br>')
 
 def fn_simple_submit(form_val, submit_str):
+    global var_dut_ip
+    global var_dut_pass
+    global var_dut_user
+    global var_dut_sku
+    global prev_form_page
+
     print( '<form name="info" action="hwsku" method="get" onsubmit="showloading(); return true;">')
     print( "<input type='submit' value=" +submit_str +">")
     print( "<input type='hidden' id='form' name='form' value="+form_val+ ">")
@@ -204,10 +227,10 @@ def fn_simple_submit(form_val, submit_str):
     print( '<hr>')
     print( '<br>')
 
-def fn_fill_sku_list():
+def fn_fill_sku_list(var_dut_ip, var_dut_user, var_dut_pass):
     print( '<form name="info" action="hwsku" method="get" onsubmit="showloading(); return true;">')
     print( '<br><b>Select the SKU</b>')
-    skus = fn_get_skus()
+    skus = fn_get_skus(var_dut_ip, var_dut_user, var_dut_pass)
     for s in skus:
         print ( "<input type='radio' name='sku' value="+s+">"+s)
     print( '<br>')
@@ -221,20 +244,20 @@ def fn_fill_sku_list():
     print( '<hr>')
     print( '<br>')
 
-def fn_printfourth_form():
-    fn_check_sku_status()
-    fn_get_platform()
+def fn_printfourth_form(var_dut_ip, var_dut_user, var_dut_pass):
+    fn_check_sku_status(var_dut_ip, var_dut_user, var_dut_pass)
+    fn_get_platform(var_dut_ip, var_dut_user, var_dut_pass)
     fn_print_sonic_cmd("show interface status")
     fn_simple_submit("3", "Status")
     fn_simple_submit("100", "Home")
 
-def fn_printthird_form():
-    fn_change_sku()
+def fn_printthird_form(var_dut_ip, var_dut_user, var_dut_pass):
+    fn_change_sku(var_dut_ip, var_dut_user, var_dut_pass)
     fn_simple_submit("3", "Status")
 
-def fn_printsecond_form():
-    fn_get_platform()
-    fn_fill_sku_list()
+def fn_printsecond_form(var_dut_ip, var_dut_user, var_dut_pass):
+    fn_get_platform(var_dut_ip, var_dut_user, var_dut_pass)
+    fn_fill_sku_list(var_dut_ip, var_dut_user, var_dut_pass)
 
 def _main():
     # Enable cgi trace back for debugging
@@ -246,8 +269,46 @@ def _main():
 
     fn_print_footer()
 
+def fn_test_form0():
+    print ("Form0 Not implemented")
+
+def fn_test_form1():
+    print ("Form1 implemented")
+    fn_printsecond_form(var_dut_ip, var_dut_user, var_dut_pass)
+    #fn_get_platform()
+    #fn_fill_sku_list()
+
+def fn_test_form2():
+    print ("Form2 Not implemented")
+
+def fn_test_me():
+    global var_dut_ip
+    global var_dut_pass
+    global var_dut_user
+    global var_dut_sku
+    global prev_form_page
+
+    var_dut_ip = "10.112.140.37"
+    var_dut_user = "admin" if var_dut_user is None else var_dut_user
+    var_dut_pass = "Innovium123" if var_dut_pass is None else var_dut_pass
+    fn_test_dut()
+    prev_form_page = 0
+    fn_test_form0()
+    prev_form_page = 1
+    fn_test_form1()
+    prev_form_page = 2
+    fn_test_form2()
 
 
 # Start to run
+var_dut_ip = "0.0.0.0"
+var_dut_user = "admin"
+var_dut_pass = "Innovium123"
+
+#if __name__ == "__main__":
+#    #fn_test_me()
+#    print('<i>Contact antonyr@marvell.com</i>')
+
+
 _main()
 

@@ -4,7 +4,6 @@
 import os
 import sys
 import subprocess
-from pexpect import pxssh
 
 sys.path.append("/usr/lib/cgi-bin/sonic_helper")
 
@@ -23,16 +22,6 @@ def fn_local_exec_v1(command, arg1):
     #out=outs.decode('UTF-8').rstrip()
     return out
 
-
-def fn_ssh_exec_pexp(ip, user, passwd, command):
-    s = pxssh.pxssh(options={
-                    "StrictHostKeyChecking": "no",
-                    "UserKnownHostsFile": "/dev/null"})
-    s.login(ip, user, passwd)
-    s.prompt()
-    s.sendline(command)
-    s.prompt()
-    return s.before
 
 def fn_ssh_exec(ip, user, passwd, command):
     proc = subprocess.Popen(['/usr/bin/sshpass', '-p', passwd, 'ssh', user + '@' + ip , command], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -70,8 +59,8 @@ def fn_test_me():
     out = []
     fn_ssh_copy("10.111.60.15", "admin", "Innovium123", "/var/www/cgi-bin/sonic_helper/", "remote_hwsku_info.sh")
     out = fn_ssh_exec("10.111.60.15", "admin", "Innovium123", "/tmp/_remote_hwsku_info.sh")
-    print out
-    print len(out)
+    #print out
+    #print len(out)
 
 if __name__ == "__main__":
     fn_test_me()
