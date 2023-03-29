@@ -36,6 +36,7 @@ def fn_print_header():
     print( "<pre>")
 
     print( "<body>")
+    print( "<hr>Please contact Antony Rheneus for any issues <hr>")
     #print( '<div id="loading" style="display:none"><img src="http://10.112.140.50/cgi-bin/sonic_helper/hwsku/loading.gif"></div>')
     print( '<div id="loading" style="padding-top:100.000%;position:relative;display:none"><iframe src="https://gifer.com/embed/g0R9" width="10%" height="10%" style="position:absolute;top:0;left:0;" frameBorder="0" allowFullScreen></iframe><p> Loading, please wait .. </p></div>')
     print(' <script>')
@@ -45,9 +46,22 @@ def fn_print_header():
     print(' }')
     print(' </script>')
 
+def visited():
+    srvr_path="/var/www/cgi-bin/sonic_helper/visited.txt"
+    v = 0
+    try:
+        f = open(srvr_path, "r")
+        v = int(f.read())
+        v = v + 1
+    except:
+        v = 1
+    f = open(srvr_path, "w")
+    f.write(str(v))
+    print("<i>Visited: %s </i>" % str(v))
 
 def fn_print_footer():
     print( "</pre>")
+    visited()
     print( "</body>")
     print( '</html>')
 
@@ -92,15 +106,15 @@ def fn_get_query_string():
     var_dut_ip = form.getvalue('dut_ip')
     var_dut_pass = form.getvalue('dut_pass')
     var_dut_user = form.getvalue('dut_user')
-    if var_dut_ip == "0.0.0.0" or var_dut_ip is None:
-         print("<B>ERROR: IP is Invalid<B>")
-         print(var_dut_ip)
+    #if var_dut_ip == "0.0.0.0" or var_dut_ip is None:
+    #     print("<B>ERROR: IP is Invalid<B>")
+    #     print(var_dut_ip)
 
     if int(prev_form_page) == 3:
         fn_printfourth_form(var_dut_ip, var_dut_user, var_dut_pass)
     if int(prev_form_page) == 2:
         var_dut_sku = form.getvalue('sku')
-        fn_printthird_form(var_dut_ip, var_dut_user, var_dut_pass)
+        fn_printthird_form(var_dut_ip, var_dut_user, var_dut_pass, var_dut_sku)
     elif int(prev_form_page) == 1:
         fn_printsecond_form(var_dut_ip, var_dut_user, var_dut_pass)
     else:
@@ -131,7 +145,7 @@ def fn_get_skus(var_dut_ip, var_dut_user, var_dut_pass):
     fn_ssh_exec(var_dut_ip, var_dut_user, var_dut_pass, "rm -f "+tmp_path+get_script)
     return out
 
-def fn_change_sku(var_dut_ip, var_dut_user, var_dut_pass):
+def fn_change_sku(var_dut_ip, var_dut_user, var_dut_pass, var_dut_sku):
     global srvr_path
     global get_script
     global tmp_path
@@ -209,12 +223,7 @@ def fn_print_sonic_cmd(cmd):
 
     print( '<hr><br>')
 
-def fn_simple_submit(form_val, submit_str):
-    global var_dut_ip
-    global var_dut_pass
-    global var_dut_user
-    global var_dut_sku
-    global prev_form_page
+def fn_simple_submit(form_val, submit_str, var_dut_ip, var_dut_user, var_dut_pass):
 
     print( '<form name="info" action="hwsku" method="get" onsubmit="showloading(); return true;">')
     print( "<input type='submit' value=" +submit_str +">")
@@ -248,12 +257,12 @@ def fn_printfourth_form(var_dut_ip, var_dut_user, var_dut_pass):
     fn_check_sku_status(var_dut_ip, var_dut_user, var_dut_pass)
     fn_get_platform(var_dut_ip, var_dut_user, var_dut_pass)
     fn_print_sonic_cmd("show interface status")
-    fn_simple_submit("3", "Status")
-    fn_simple_submit("100", "Home")
+    fn_simple_submit("3", "Status", var_dut_ip, var_dut_user, var_dut_pass)
+    fn_simple_submit("100", "Home", var_dut_ip, var_dut_user, var_dut_pass)
 
-def fn_printthird_form(var_dut_ip, var_dut_user, var_dut_pass):
-    fn_change_sku(var_dut_ip, var_dut_user, var_dut_pass)
-    fn_simple_submit("3", "Status")
+def fn_printthird_form(var_dut_ip, var_dut_user, var_dut_pass, var_dut_sku):
+    fn_change_sku(var_dut_ip, var_dut_user, var_dut_pass, var_dut_sku)
+    fn_simple_submit("3", "Status", var_dut_ip, var_dut_user, var_dut_pass)
 
 def fn_printsecond_form(var_dut_ip, var_dut_user, var_dut_pass):
     fn_get_platform(var_dut_ip, var_dut_user, var_dut_pass)

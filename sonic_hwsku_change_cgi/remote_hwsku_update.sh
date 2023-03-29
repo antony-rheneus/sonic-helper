@@ -51,11 +51,11 @@ update_config()
 	sudo cp $FNAME $FPATH
 
 	echo "Generating config files"
-	sonic-cfggen -H -k $1 --preset t1 > /tmp/m.json
+	sonic-cfggen -H -k $1 -p $1/port_config.ini --preset t1 > /tmp/m.json
 	DVC_OPT=""
 	if [ -f $FNAME ];then
 		echo "{" > /tmp/d.json
-	       	sed -n '/DEVICE_METADATA/,/}/p' $FNAME >> /tmp/d.json
+	       	sed -n '/DEVICE_METADATA":/,/}/p' $FNAME >> /tmp/d.json
 		echo "}}" >> /tmp/d.json
 		DVC_OPT=" -j /tmp/d.json "
 		echo "{" > /tmp/e.json
@@ -97,6 +97,9 @@ update_config()
 restart_docker()
 {
 	echo "Stopping Syncd docker"
+	#Uncomment incase if syncd container has been updated/modified
+	#sudo docker commit syncd
+	#sudo docker image prune -f
 	sudo docker stop syncd
 	sudo docker rm syncd
 	echo "Reloading configuration"
