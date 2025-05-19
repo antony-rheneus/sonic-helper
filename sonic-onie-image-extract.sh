@@ -21,6 +21,8 @@ echo
 F=`basename $1`
 sed -e '1,/^exit_marker$/d' $1 > $F.extracted.tar
 
+# sed -n '1,/^exit_marker$/p' $1  > $F.install.sh
+
 echo "Disclosed $0 binary image to tar $F.extracted.tar"
 
 mkdir -p "$F_extracted"
